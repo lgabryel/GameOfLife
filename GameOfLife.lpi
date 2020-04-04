@@ -26,16 +26,31 @@
       <FormatVersion Value="2"/>
       <Modes Count="0"/>
     </RunParams>
-    <Units Count="2">
+    <Units Count="5">
       <Unit0>
         <Filename Value="GameOfLife.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="gameoflifeengine.pas"/>
+        <Filename Value="gol_engine.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="GameOfLifeEngine"/>
+        <UnitName Value="GOL_Engine"/>
       </Unit1>
+      <Unit2>
+        <Filename Value="Views\gol_plainconsoleview.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="GOL_plainconsoleview"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="Interfaces\gol_interfaces.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="GOL_Interfaces"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="gol_presenter.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="GOL_Presenter"/>
+      </Unit4>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -46,8 +61,14 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="Views;Interfaces"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
+    <Other>
+      <Verbosity>
+        <ShoLineNum Value="True"/>
+      </Verbosity>
+    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">

@@ -1,17 +1,17 @@
-unit GameOfLifeEngine;
+unit GOL_Engine;
 
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils, crt, Windows;
+  Classes, SysUtils, crt, GOL_Interfaces, GOL_plainconsoleview;
 
 type
 
   { TCell }
 
-  TCell = Class
+  TCell = class
 
   private
     neightbours : TList;
@@ -31,7 +31,7 @@ type
 
    { TCellsCollection }
 
-   TCellsCollection = Class
+   TCellsCollection = class
 
      private
        {fields}
@@ -54,17 +54,21 @@ type
 
   { TGameOfLiveBoard }
 
-  TGameOfLiveBoard = Class
+  TGameOfLiveBoard = class(TInterfacedObject, IGOL_Engine)
 
     private
       _board : TCellsCollection;
-      procedure DumpBoardToConsole;
+      _presenter : IGOL_Presenter;
+      procedure DrawBoard;
+      procedure GetNextGeneration;
 
     public
-      constructor Create;
+      constructor Create(APresenter : IGOL_Presenter);
       procedure Load(pathToMapFile : String);
-      function GetNextGeneration :  TCell2DArray;
-
+      procedure Start;
+      procedure Stop;
+      procedure UpdateConfig;
+      procedure Init;
   end;
 
   { TGameOfLiveBoardLoader }
@@ -197,40 +201,62 @@ end;
 
 { TGameOfLiveBoard }
 
-procedure TGameOfLiveBoard.DumpBoardToConsole;
+procedure TGameOfLiveBoard.DrawBoard();
 var
   i : integer;
   j : integer;
   size : integer;
-  line : String;
-  LNumberOfCharsToWritten: longword;
+  bufor : TViewBoard;
 begin
-  size := Length(_board.Items);
-  i := 0;
-  j := 0;
-  Setlength(line,size+2);
-  line[size+1] :=  #10;
-  line[size+2]  :=  #13;
+  i:=0;
+  j:=0;
+  size:=Length(_board.Items);
+  SetLength(bufor, size, size);
 
+  //Konwersja stanów na bufor
   for i := 0 to size-1 do
   begin
      for j := 0 to size-1 do
      begin
         if _board.Items[i][j].internalState then
         begin
-          line[j+1] := '@';
+          bufor[i][j] := '@';
         end else begin
-          line[j+1] := ' ';
+          bufor[i][j] := ' ';
         end;
      end;
-     WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), PChar(line), size+2, LNumberOfCharsToWritten, nil);
-   //  Writeln;
   end;
+
+  _presenter.UpdateView(bufor);
 end;
 
-constructor TGameOfLiveBoard.Create;
+constructor TGameOfLiveBoard.Create( APresenter : IGOL_Presenter);
+begin
+  _presenter := APresenter;
+end;
+
+procedure TGameOfLiveBoard.Start;
+begin
+  repeat
+    GetNextGeneration;
+    delay(100);
+  until false;
+
+end;
+
+procedure TGameOfLiveBoard.Stop;
 begin
 
+end;
+
+procedure TGameOfLiveBoard.UpdateConfig;
+begin
+
+end;
+
+procedure TGameOfLiveBoard.Init;
+begin
+  Load('test.txt');
 end;
 
 procedure TGameOfLiveBoard.Load(pathToMapFile: String);
@@ -279,88 +305,14 @@ begin
     i := i + 1;
   end until  EOF(txtf);
 
-  DumpBoardToConsole;
+  //DumpBoardToConsole;
+  DrawBoard();
 
   _board.SetNeightbours;
 
-  {//Musimy przypisać jeszcze referencje na sąsiadów
-  i := 0;
-  j := 0;
-
-  for i := 0 to size-1 do
-  begin
-    for j := 0 to size-1 do
-    begin
-       nj := j;
-       ni := i-1;
-
-       if ( (nj > 0) and (nj < size)) and  ( (ni > 0) and (ni < size)) then
-       begin
-         _board[i][j].AddNeightbour(_board[ni][nj]);
-       end;
-
-       nj := j;
-       ni := i+1;
-
-       if ( (nj > 0) and (nj < size)) and  ( (ni > 0) and (ni < size)) then
-       begin
-         _board[i][j].AddNeightbour(_board[ni][nj]);
-       end;
-
-       nj := j+1;
-       ni := i;
-
-       if ( (nj > 0) and (nj < size)) and  ( (ni > 0) and (ni < size)) then
-       begin
-         _board[i][j].AddNeightbour(_board[ni][nj]);
-       end;
-
-       nj := j+1;
-       ni := i-1;
-
-       if ( (nj > 0) and (nj < size)) and  ( (ni > 0) and (ni < size)) then
-       begin
-         _board[i][j].AddNeightbour(_board[ni][nj]);
-       end;
-
-       nj := j+1;
-       ni := i+1;
-
-       if ( (nj > 0) and (nj < size)) and  ( (ni > 0) and (ni < size)) then
-       begin
-         _board[i][j].AddNeightbour(_board[ni][nj]);
-       end;
-
-       nj := j-1;
-       ni := i;
-
-       if ( (nj > 0) and (nj < size)) and  ( (ni > 0) and (ni < size)) then
-       begin
-         _board[i][j].AddNeightbour(_board[ni][nj]);
-       end;
-
-       nj := j-1;
-       ni := i-1;
-
-       if ( (nj > 0) and (nj < size)) and  ( (ni > 0) and (ni < size)) then
-       begin
-         _board[i][j].AddNeightbour(_board[ni][nj]);
-       end;
-
-       nj := j-1;
-       ni := i+1;
-
-       if ( (nj > 0) and (nj < size)) and  ( (ni > 0) and (ni < size)) then
-       begin
-         _board[i][j].AddNeightbour(_board[ni][nj]);
-       end;
-    end;
-  end;
-  }
-
 end;
 
-function TGameOfLiveBoard.GetNextGeneration: TCell2DArray;
+procedure TGameOfLiveBoard.GetNextGeneration;
 var
   i : integer;
   j : integer;
@@ -368,7 +320,6 @@ var
   newBoard : TCellsCollection;
 begin
   size := Length(_board.Items);
-  //newBoard := copy(_board, 0, length(_board)) ;
   newBoard := _board.Clone;
 
   for i := 0 to size-1 do
@@ -382,10 +333,7 @@ begin
   _board := nil;
   _board := newBoard;
 
-  ClrScr;
-
-  DumpBoardToConsole;
-
+  DrawBoard();
 end;
 
 { TGameOfLiveBoardLoader }

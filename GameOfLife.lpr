@@ -6,20 +6,14 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  Classes, GameOfLifeEngine, crt
+  Classes, GOL_Engine, GOL_Presenter, GOL_Interfaces
   { you can add units after this };
 
 var
-  game : TGameOfLiveBoard;
+ _presenter : IGOL_Presenter;
 
 begin
-  game := TGameOfLiveBoard.Create;
-  game.Load('test.txt');
-  cursoroff;
-
-  repeat
-    game.GetNextGeneration;
-    delay(100);
-  until false;
+  _presenter := TGOL_Presenter.Create;
+  _presenter.SynchronizeModel;
 end.
 
