@@ -52,6 +52,8 @@ type
 
    end;
 
+   TGOL_EnginWorker = class;
+
   { TGameOfLiveBoard }
 
   TGameOfLiveBoard = class(TInterfacedObject, IGOL_Engine)
@@ -59,8 +61,11 @@ type
     private
       _board : TCellsCollection;
       _presenter : IGOL_Presenter;
+      _finished : boolean;
+      _worker : TGOL_EnginWorker;
       procedure DrawBoard;
       procedure GetNextGeneration;
+      procedure Play;
 
     public
       constructor Create(APresenter : IGOL_Presenter);
@@ -69,6 +74,19 @@ type
       procedure Stop;
       procedure UpdateConfig;
       procedure Init;
+  end;
+
+    { TGOL_EnginWorker }
+
+    TGOL_EnginWorker = class(TThread)
+    protected
+      procedure Execute; override;
+
+    private
+      _board : TGameOfLiveBoard;
+
+    public
+      constructor Create(ABoard : TGameOfLiveBoard);
   end;
 
   { TGameOfLiveBoardLoader }
@@ -81,6 +99,20 @@ type
   end;
 
 implementation
+
+{ TGOL_EnginWorker }
+
+procedure TGOL_EnginWorker.Execute;
+begin
+  _board.Play;
+end;
+
+constructor TGOL_EnginWorker.Create(ABoard: TGameOfLiveBoard);
+begin
+  inherited Create(False);
+  FreeOnTerminate := True;
+  _board := ABoard;
+end;
 
 { TCellsCollection }
 
@@ -201,7 +233,7 @@ end;
 
 { TGameOfLiveBoard }
 
-procedure TGameOfLiveBoard.DrawBoard();
+procedure TGameOfLiveBoard.DrawBoard;
 var
   i : integer;
   j : integer;
@@ -230,6 +262,7 @@ begin
   _presenter.UpdateView(bufor);
 end;
 
+
 constructor TGameOfLiveBoard.Create( APresenter : IGOL_Presenter);
 begin
   _presenter := APresenter;
@@ -237,16 +270,14 @@ end;
 
 procedure TGameOfLiveBoard.Start;
 begin
-  repeat
-    GetNextGeneration;
-    delay(100);
-  until false;
-
+  //TODO czyszczenie tablicy
+  _worker := TGOL_EnginWorker.Create(self);
+  _finished := false;
 end;
 
 procedure TGameOfLiveBoard.Stop;
 begin
-
+ _finished := true;
 end;
 
 procedure TGameOfLiveBoard.UpdateConfig;
@@ -259,7 +290,16 @@ begin
   Load('test.txt');
 end;
 
+procedure TGameOfLiveBoard.Play;
+begin
+  repeat
+    GetNextGeneration;
+    delay(100);
+  until _finished;
+end;
+
 procedure TGameOfLiveBoard.Load(pathToMapFile: String);
+
 var
   txtf : TextFile;
   i : integer;

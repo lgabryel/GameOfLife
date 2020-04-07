@@ -15,5 +15,9 @@ var
 begin
   _presenter := TGOL_Presenter.Create;
   _presenter.SynchronizeModel;
+
+ //Pętla programu, w osobnym wątku model dziala i wola presenter.
+ //TODO obsluzyc jakos watek wejscia
+ repeat until false;
 end.
 
