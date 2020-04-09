@@ -38,10 +38,11 @@ begin
 
   ClrScr;
 
+  //GotoXY(0,0);
+
   //kopiowanie z bufora planszy do bufora wydruku
   for i := 0 to size-1 do
   begin
-    //Move(ABoard[i][0], line, size);
     line := Copy(ABoard[i], 0, MaxInt);
 
     //Alokowanie bufora na linię tekstu
@@ -56,7 +57,9 @@ begin
     //Szybkie wypisanie linii
     WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), PChar(line), size+endOffset,
       LNumberOfCharsToWritten, nil);
+    sleep(1);
   end;
+
 end;
 
 constructor TPlainConsoleView.Create;
