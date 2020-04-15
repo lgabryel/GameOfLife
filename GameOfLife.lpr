@@ -21,6 +21,6 @@ begin
   //Pętla programu, w osobnym wątku model dziala i wola presenter.
   //TODO obsluzyc jakos watek wejscia
   repeat
-
+    sleep(100);
   until False;
 end.

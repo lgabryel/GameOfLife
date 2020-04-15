@@ -296,7 +296,7 @@ procedure TGameOfLiveBoard.Play;
 begin
   repeat
     GetNextGeneration;
-    sleep(1000);
+    sleep(500);
   until _finished;
 end;
 

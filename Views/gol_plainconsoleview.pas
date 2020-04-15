@@ -12,6 +12,8 @@ type
   { TPlainConsoleView }
 
   TPlainConsoleView = class(TInterfacedObject, IGOL_View)
+  private
+    procedure SetConsoleWindowSize(Ax:integer; Ay:integer);
   public
     procedure UpdateView( ABoard : TViewBoard);
     constructor Create;
@@ -38,8 +40,6 @@ begin
 
   ClrScr;
 
-  //GotoXY(0,0);
-
   //kopiowanie z bufora planszy do bufora wydruku
   for i := 0 to size-1 do
   begin
@@ -57,14 +57,29 @@ begin
     //Szybkie wypisanie linii
     WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), PChar(line), size+endOffset,
       LNumberOfCharsToWritten, nil);
-    sleep(1);
   end;
 
+end;
+
+procedure TPlainConsoleView.SetConsoleWindowSize(Ax:integer; Ay:integer);
+var
+  Rect: TSmallRect;
+  Coord: TCoord;
+begin
+  Rect.Left := 1;
+  Rect.Top := 1;
+  Rect.Right := Ax;  // notice horiz scroll bar once the following executes
+  Rect.Bottom := Ay;
+  Coord.X := Rect.Right + 1 - Rect.Left;
+  Coord.y := Rect.Bottom + 1 - Rect.Top;
+  SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), Coord);
+  SetConsoleWindowInfo(GetStdHandle(STD_OUTPUT_HANDLE), True, Rect);
 end;
 
 constructor TPlainConsoleView.Create;
 begin
   cursoroff;
+  SetConsoleWindowSize(60,60);
 end;
 
 
