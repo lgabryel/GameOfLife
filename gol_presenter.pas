@@ -5,7 +5,8 @@ unit GOL_Presenter;
 interface
 
 uses
-  Classes, SysUtils, GOL_Interfaces, GOL_plainconsoleview, GOL_Engine;
+  Classes, SysUtils, GOL_Interfaces, GOL_plainconsoleview, GOL_LclView,
+  GOL_Engine;
 
 type
 
@@ -38,7 +39,8 @@ end;
 
 constructor TGOL_Presenter.Create;
 begin
-  _view := TPlainConsoleView.Create;
+  //_view := TPlainConsoleView.Create;
+  _view := TLclView.Create(50,50);
   _model := TGameOfLiveBoard.Create(self);
 end;
 

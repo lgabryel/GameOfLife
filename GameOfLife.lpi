@@ -26,7 +26,12 @@
       <FormatVersion Value="2"/>
       <Modes Count="0"/>
     </RunParams>
-    <Units Count="5">
+    <RequiredPackages Count="1">
+      <Item1>
+        <PackageName Value="LCL"/>
+      </Item1>
+    </RequiredPackages>
+    <Units Count="6">
       <Unit0>
         <Filename Value="GameOfLife.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -51,6 +56,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="GOL_Presenter"/>
       </Unit4>
+      <Unit5>
+        <Filename Value="Views\gol_lclview.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="GOL_LclView"/>
+      </Unit5>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
