@@ -211,7 +211,6 @@ end;
 function TCellsCollection.Clone: TCellsCollection;
 var
   newCells: TCellsCollection;
-  newCell: TCell;
   i: integer;
   j: integer;
   size: integer;
@@ -306,10 +305,7 @@ var
   txtf: TextFile;
   i: integer;
   j: integer;
-  ni: integer;
-  nj: integer;
   s: string;
-  size: integer;
   c: char;
 begin
   //Otwieramy mapę
@@ -329,8 +325,6 @@ begin
   //Alokujemy mapę
   //SetLength(_board, i+1, j);
   _board := TCellsCollection.Create(i + 1, j);
-
-  size := i + 1;
 
   //Wracamy na początek pliku i ladujemy do mapy stany komórek
   Reset(txtf);
