@@ -14,149 +14,181 @@ type
   TCell = class
 
   private
-    neightbours : TList;
+    neightbours: TList;
     internalState: boolean;
-    x : integer;
-    y : integer;
-    function CountLiveNeightbours : integer;
+    x: integer;
+    y: integer;
+    function CountLiveNeightbours: integer;
 
   public
-    constructor Create(startState: boolean; Ax :integer; Ay : integer);
-    procedure AddNeightbour(neightbour : TCell);
-    function CalculateState : boolean;
-    Property State :  boolean read internalState write internalState;
+    constructor Create(startState: boolean; Ax: integer; Ay: integer);
+    procedure AddNeightbour(neightbour: TCell);
+    function CalculateState: boolean;
+    property State: boolean read internalState write internalState;
   end;
 
-   TCell2DArray = array of array of TCell;
+  TCell2DArray = array of array of TCell;
 
-   { TCellsCollection }
+  { TCellsCollection }
 
-   TCellsCollection = class
+  TCellsCollection = class
 
-     private
-       {fields}
-       _cells : TCell2DArray;
-       {procedures}
-       procedure SetNeightbours;
+  private
+    {fields}
+    _cells: TCell2DArray;
+    {procedures}
+    procedure SetNeightbours;
 
-     public
-       {constructors}
-       constructor Create(dimensionX : integer; dimensionY : integer);
-       constructor Create(existingCollection : TCellsCollection);
-       {procedures}
-       procedure ResizeTo(dimensionX : integer; dimensionY : integer);
-       {functions}
-       function Clone : TCellsCollection;
-       {properties}
-       property Items : TCell2DArray read _cells;
+  public
+    {constructors}
+    constructor Create(dimensionX: integer; dimensionY: integer);
+    constructor Create(existingCollection: TCellsCollection);
+    {procedures}
+    procedure ResizeTo(dimensionX: integer; dimensionY: integer);
+    {functions}
+    function Clone: TCellsCollection;
+    {properties}
+    property Items: TCell2DArray read _cells;
 
-   end;
+  end;
+
+  TGOL_EnginWorker = class;
 
   { TGameOfLiveBoard }
 
   TGameOfLiveBoard = class(TInterfacedObject, IGOL_Engine)
 
-    private
-      _board : TCellsCollection;
-      _presenter : IGOL_Presenter;
-      procedure DrawBoard;
-      procedure GetNextGeneration;
+  private
+    _board: TCellsCollection;
+    _presenter: IGOL_Presenter;
+    _finished: boolean;
+    _worker: TGOL_EnginWorker;
+    procedure DrawBoard;
+    procedure GetNextGeneration;
+    procedure Play;
 
-    public
-      constructor Create(APresenter : IGOL_Presenter);
-      procedure Load(pathToMapFile : String);
-      procedure Start;
-      procedure Stop;
-      procedure UpdateConfig;
-      procedure Init;
+  public
+    constructor Create(APresenter: IGOL_Presenter);
+    procedure Load(pathToMapFile: string);
+    procedure Start;
+    procedure Stop;
+    procedure UpdateConfig;
+    procedure Init;
+  end;
+
+  { TGOL_EnginWorker }
+
+  TGOL_EnginWorker = class(TThread)
+  protected
+    procedure Execute; override;
+
+  private
+    _board: TGameOfLiveBoard;
+
+  public
+    constructor Create(ABoard: TGameOfLiveBoard);
   end;
 
   { TGameOfLiveBoardLoader }
 
-  TGameOfLiveBoardLoader = Class
+  TGameOfLiveBoardLoader = class
 
-    public
-      function Load(pathToMapFile : String) : TCell2DArray;
-      constructor Create;
+  public
+    function Load(pathToMapFile: string): TCell2DArray;
+    constructor Create;
   end;
 
 implementation
+
+{ TGOL_EnginWorker }
+
+procedure TGOL_EnginWorker.Execute;
+begin
+  _board.Play;
+end;
+
+constructor TGOL_EnginWorker.Create(ABoard: TGameOfLiveBoard);
+begin
+  inherited Create(False);
+  FreeOnTerminate := True;
+  _board := ABoard;
+end;
 
 { TCellsCollection }
 
 procedure TCellsCollection.SetNeightbours;
 var
-  i, j, size, nj, ni : integer;
+  i, j, size, nj, ni: integer;
 begin
   size := Length(_cells);
 
-  for i := 0 to size-1 do
+  for i := 0 to size - 1 do
   begin
-    for j := 0 to size-1 do
+    for j := 0 to size - 1 do
     begin
-       nj := j;
-       ni := i-1;
+      nj := j;
+      ni := i - 1;
 
-       if ( (nj > 0) and (nj < size)) and  ( (ni > 0) and (ni < size)) then
-       begin
-         _cells[i][j].AddNeightbour(_cells[ni][nj]);
-       end;
+      if ((nj > 0) and (nj < size)) and ((ni > 0) and (ni < size)) then
+      begin
+        _cells[i][j].AddNeightbour(_cells[ni][nj]);
+      end;
 
-       nj := j;
-       ni := i+1;
+      nj := j;
+      ni := i + 1;
 
-       if ( (nj > 0) and (nj < size)) and  ( (ni > 0) and (ni < size)) then
-       begin
-         _cells[i][j].AddNeightbour(_cells[ni][nj]);
-       end;
+      if ((nj > 0) and (nj < size)) and ((ni > 0) and (ni < size)) then
+      begin
+        _cells[i][j].AddNeightbour(_cells[ni][nj]);
+      end;
 
-       nj := j+1;
-       ni := i;
+      nj := j + 1;
+      ni := i;
 
-       if ( (nj > 0) and (nj < size)) and  ( (ni > 0) and (ni < size)) then
-       begin
-         _cells[i][j].AddNeightbour(_cells[ni][nj]);
-       end;
+      if ((nj > 0) and (nj < size)) and ((ni > 0) and (ni < size)) then
+      begin
+        _cells[i][j].AddNeightbour(_cells[ni][nj]);
+      end;
 
-       nj := j+1;
-       ni := i-1;
+      nj := j + 1;
+      ni := i - 1;
 
-       if ( (nj > 0) and (nj < size)) and  ( (ni > 0) and (ni < size)) then
-       begin
-         _cells[i][j].AddNeightbour(_cells[ni][nj]);
-       end;
+      if ((nj > 0) and (nj < size)) and ((ni > 0) and (ni < size)) then
+      begin
+        _cells[i][j].AddNeightbour(_cells[ni][nj]);
+      end;
 
-       nj := j+1;
-       ni := i+1;
+      nj := j + 1;
+      ni := i + 1;
 
-       if ( (nj > 0) and (nj < size)) and  ( (ni > 0) and (ni < size)) then
-       begin
-         _cells[i][j].AddNeightbour(_cells[ni][nj]);
-       end;
+      if ((nj > 0) and (nj < size)) and ((ni > 0) and (ni < size)) then
+      begin
+        _cells[i][j].AddNeightbour(_cells[ni][nj]);
+      end;
 
-       nj := j-1;
-       ni := i;
+      nj := j - 1;
+      ni := i;
 
-       if ( (nj > 0) and (nj < size)) and  ( (ni > 0) and (ni < size)) then
-       begin
-         _cells[i][j].AddNeightbour(_cells[ni][nj]);
-       end;
+      if ((nj > 0) and (nj < size)) and ((ni > 0) and (ni < size)) then
+      begin
+        _cells[i][j].AddNeightbour(_cells[ni][nj]);
+      end;
 
-       nj := j-1;
-       ni := i-1;
+      nj := j - 1;
+      ni := i - 1;
 
-       if ( (nj > 0) and (nj < size)) and  ( (ni > 0) and (ni < size)) then
-       begin
-         _cells[i][j].AddNeightbour(_cells[ni][nj]);
-       end;
+      if ((nj > 0) and (nj < size)) and ((ni > 0) and (ni < size)) then
+      begin
+        _cells[i][j].AddNeightbour(_cells[ni][nj]);
+      end;
 
-       nj := j-1;
-       ni := i+1;
+      nj := j - 1;
+      ni := i + 1;
 
-       if ( (nj > 0) and (nj < size)) and  ( (ni > 0) and (ni < size)) then
-       begin
-         _cells[i][j].AddNeightbour(_cells[ni][nj]);
-       end;
+      if ((nj > 0) and (nj < size)) and ((ni > 0) and (ni < size)) then
+      begin
+        _cells[i][j].AddNeightbour(_cells[ni][nj]);
+      end;
     end;
   end;
 end;
@@ -168,7 +200,7 @@ end;
 
 constructor TCellsCollection.Create(existingCollection: TCellsCollection);
 begin
-  _cells :=  copy(existingCollection.Items, 0, Length(existingCollection.Items));
+  _cells := copy(existingCollection.Items, 0, Length(existingCollection.Items));
 end;
 
 procedure TCellsCollection.ResizeTo(dimensionX: integer; dimensionY: integer);
@@ -178,21 +210,21 @@ end;
 
 function TCellsCollection.Clone: TCellsCollection;
 var
-  newCells : TCellsCollection;
+  newCells: TCellsCollection;
   newCell: TCell;
-  i : integer;
-  j : integer;
-  size : integer;
+  i: integer;
+  j: integer;
+  size: integer;
 begin
   size := Length(self.Items);
-  newCells := TCellsCollection.Create(size,size);
+  newCells := TCellsCollection.Create(size, size);
 
-  for i := 0 to size-1 do
+  for i := 0 to size - 1 do
   begin
-     for j := 0 to size-1 do
-     begin
-        newCells.Items[i][j] := TCell.Create(self.Items[i][j].InternalState, i,j);
-     end;
+    for j := 0 to size - 1 do
+    begin
+      newCells.Items[i][j] := TCell.Create(self.Items[i][j].InternalState, i, j);
+    end;
   end;
 
   newCells.SetNeightbours;
@@ -201,52 +233,53 @@ end;
 
 { TGameOfLiveBoard }
 
-procedure TGameOfLiveBoard.DrawBoard();
+procedure TGameOfLiveBoard.DrawBoard;
 var
-  i : integer;
-  j : integer;
-  size : integer;
-  bufor : TViewBoard;
+  i: integer;
+  j: integer;
+  size: integer;
+  bufor: TViewBoard;
 begin
-  i:=0;
-  j:=0;
-  size:=Length(_board.Items);
+  i := 0;
+  j := 0;
+  size := Length(_board.Items);
   SetLength(bufor, size, size);
 
   //Konwersja stanów na bufor
-  for i := 0 to size-1 do
+  for i := 0 to size - 1 do
   begin
-     for j := 0 to size-1 do
-     begin
-        if _board.Items[i][j].internalState then
-        begin
-          bufor[i][j] := '@';
-        end else begin
-          bufor[i][j] := ' ';
-        end;
-     end;
+    for j := 0 to size - 1 do
+    begin
+      if _board.Items[i][j].internalState then
+      begin
+        bufor[i][j] := '@';
+      end
+      else
+      begin
+        bufor[i][j] := ' ';
+      end;
+    end;
   end;
 
   _presenter.UpdateView(bufor);
 end;
 
-constructor TGameOfLiveBoard.Create( APresenter : IGOL_Presenter);
+
+constructor TGameOfLiveBoard.Create(APresenter: IGOL_Presenter);
 begin
   _presenter := APresenter;
 end;
 
 procedure TGameOfLiveBoard.Start;
 begin
-  repeat
-    GetNextGeneration;
-    delay(100);
-  until false;
-
+  //TODO czyszczenie tablicy
+  _worker := TGOL_EnginWorker.Create(self);
+  _finished := False;
 end;
 
 procedure TGameOfLiveBoard.Stop;
 begin
-
+  _finished := True;
 end;
 
 procedure TGameOfLiveBoard.UpdateConfig;
@@ -259,16 +292,25 @@ begin
   Load('test.txt');
 end;
 
-procedure TGameOfLiveBoard.Load(pathToMapFile: String);
+procedure TGameOfLiveBoard.Play;
+begin
+  repeat
+    GetNextGeneration;
+    sleep(500);
+  until _finished;
+end;
+
+procedure TGameOfLiveBoard.Load(pathToMapFile: string);
+
 var
-  txtf : TextFile;
-  i : integer;
-  j : integer;
+  txtf: TextFile;
+  i: integer;
+  j: integer;
   ni: integer;
   nj: integer;
-  s : string;
-  size : integer;
-  c : char;
+  s: string;
+  size: integer;
+  c: char;
 begin
   //Otwieramy mapę
   AssignFile(txtf, pathToMapFile);
@@ -286,7 +328,7 @@ begin
 
   //Alokujemy mapę
   //SetLength(_board, i+1, j);
-  _board := TCellsCollection.Create(i+1, j);
+  _board := TCellsCollection.Create(i + 1, j);
 
   size := i + 1;
 
@@ -294,16 +336,17 @@ begin
   Reset(txtf);
   i := 0;
   repeat
-  begin
-    ReadLn(txtf, s);
-    j := 0;
-    for c in s do
     begin
-    _board.Items[i][j] := TCell.Create(c = '1', i, j);
-      j := j + 1;
-    end;
-    i := i + 1;
-  end until  EOF(txtf);
+      ReadLn(txtf, s);
+      j := 0;
+      for c in s do
+      begin
+        _board.Items[i][j] := TCell.Create(c = '1', i, j);
+        j := j + 1;
+      end;
+      i := i + 1;
+    end
+  until EOF(txtf);
 
   //DumpBoardToConsole;
   DrawBoard();
@@ -314,17 +357,17 @@ end;
 
 procedure TGameOfLiveBoard.GetNextGeneration;
 var
-  i : integer;
-  j : integer;
-  size : integer;
-  newBoard : TCellsCollection;
+  i: integer;
+  j: integer;
+  size: integer;
+  newBoard: TCellsCollection;
 begin
   size := Length(_board.Items);
   newBoard := _board.Clone;
 
-  for i := 0 to size-1 do
+  for i := 0 to size - 1 do
   begin
-    for j := 0 to size-1 do
+    for j := 0 to size - 1 do
     begin
       newBoard.Items[i][j].State := _board.Items[i][j].CalculateState;
     end;
@@ -338,7 +381,7 @@ end;
 
 { TGameOfLiveBoardLoader }
 
-function TGameOfLiveBoardLoader.Load(pathToMapFile: String): TCell2DArray;
+function TGameOfLiveBoardLoader.Load(pathToMapFile: string): TCell2DArray;
 begin
 
 end;
@@ -363,36 +406,42 @@ begin
   neightbours.Add(neightbour);
 end;
 
-function TCell.CalculateState : boolean;
+function TCell.CalculateState: boolean;
 var
-  liveNeightbours : integer;
+  liveNeightbours: integer;
 begin
   liveNeightbours := CountLiveNeightbours;
   if internalState then //jesli żyje
   begin
-     if (liveNeightbours < 2) or (liveNeightbours > 3) then
-     begin
-        CalculateState := False;
-     end else begin
-        CalculateState := True;
-     end;
-  end else begin  // jesli martwy
-     if liveNeightbours = 3 then
-     begin
-       CalculateState := True;
-     end else begin
-       CalculateState := False;
-     end;
+    if (liveNeightbours < 2) or (liveNeightbours > 3) then
+    begin
+      CalculateState := False;
+    end
+    else
+    begin
+      CalculateState := True;
+    end;
+  end
+  else
+  begin  // jesli martwy
+    if liveNeightbours = 3 then
+    begin
+      CalculateState := True;
+    end
+    else
+    begin
+      CalculateState := False;
+    end;
   end;
 end;
 
 function TCell.CountLiveNeightbours: integer;
 var
-  liveNeightboursCoun : integer;
-  neightbour : ^TCell;
+  liveNeightboursCoun: integer;
+  neightbour: ^TCell;
 begin
   liveNeightboursCoun := 0;
-  for neightbour in  neightbours do
+  for neightbour in neightbours do
   begin
     if TCell(neightbour).State then
     begin
@@ -403,4 +452,3 @@ begin
 end;
 
 end.
-
